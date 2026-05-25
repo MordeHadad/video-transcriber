@@ -1,3 +1,4 @@
+import argparse
 import os
 import subprocess
 import shutil
@@ -6,10 +7,9 @@ from tkinter import filedialog
 from typing import Final, List, Optional
 from platformdirs import PlatformDirs
 
-# Configuration as Constants
-# ty loves Final for things that shouldn't change
 MODEL_PATH: Final[str] = r"D:\Software\ivrit-faster-whisper-v2-d4"
 OUTPUT_AUDIO: Final[str] = "output_audio.m4a"
+DEFAULT_LANGUAGE: Final[str] = "he"
 
 
 def get_video_path() -> Optional[str]:
@@ -57,9 +57,12 @@ def ffmpeg_available() -> bool:
     return shutil.which("ffmpeg") is not None
 
 
-def run_whisper(audio_path: str) -> None:
-    """Runs the Hebrew transcription on CPU but first cds into a 'transcriptions' subdirectory."""
-    print("--- Starting Transcription (Hebrew / CPU) ---")
+def run_whisper(audio_path: str, language: str) -> None:
+    """Runs transcription with whisper-ctranslate2 for the specified language on CPU.
+
+    The function ensures transcripts are written into a user data `transcriptions` directory.
+    """
+    print(f"--- Starting Transcription ({language} / CPU) ---")
 
     # Ensure the 'transcriptions' subdirectory exists and run whisper from there
     dirs = PlatformDirs("transcriptions")
@@ -73,7 +76,7 @@ def run_whisper(audio_path: str) -> None:
         "--model_directory",
         MODEL_PATH,
         "--language",
-        "he",
+        language,
         "--device",
         "cpu",
         "--output_dir",
@@ -89,6 +92,10 @@ def run_whisper(audio_path: str) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Extract audio from video and transcribe using whisper-ctranslate2")
+    parser.add_argument("--language", "-l", default=DEFAULT_LANGUAGE, help="Language code for transcription (default: he)")
+    args = parser.parse_args()
+
     # Ensure ffmpeg is available before doing any GUI work or processing
     if not ffmpeg_available():
         print("FFmpeg not found in PATH. Please install FFmpeg and ensure it's available in your PATH.")
@@ -102,7 +109,7 @@ def main() -> None:
 
     if extract_audio(video_path):
         # Pass an absolute path to whisper so it can access the audio when we cd into the subdirectory
-        run_whisper(os.path.abspath(OUTPUT_AUDIO))
+        run_whisper(os.path.abspath(OUTPUT_AUDIO), args.language)
 
         # Cleanup
         if os.path.exists(OUTPUT_AUDIO):
