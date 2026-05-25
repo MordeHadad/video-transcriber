@@ -1,0 +1,18 @@
+[project]
+name = "video-transcriber"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "platformdirs>=4.9.6",
+    "whisper-ctranslate2>=0.5.7",
+]
+
+[dependency-groups]
+dev = [
+    "ty>=0.0.29",
+]
+
+[project.scripts]
+transcribe = "main:main"
