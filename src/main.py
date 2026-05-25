@@ -1,5 +1,6 @@
 import os
 import subprocess
+import shutil
 import tkinter as tk
 from tkinter import filedialog
 from typing import Final, List, Optional
@@ -51,6 +52,11 @@ def extract_audio(input_path: str) -> bool:
         return False
 
 
+def ffmpeg_available() -> bool:
+    """Return True if an ffmpeg executable is available on PATH."""
+    return shutil.which("ffmpeg") is not None
+
+
 def run_whisper(audio_path: str) -> None:
     """Runs the Hebrew transcription on CPU but first cds into a 'transcriptions' subdirectory."""
     print("--- Starting Transcription (Hebrew / CPU) ---")
@@ -83,6 +89,11 @@ def run_whisper(audio_path: str) -> None:
 
 
 def main() -> None:
+    # Ensure ffmpeg is available before doing any GUI work or processing
+    if not ffmpeg_available():
+        print("FFmpeg not found in PATH. Please install FFmpeg and ensure it's available in your PATH.")
+        return
+
     video_path: Optional[str] = get_video_path()
 
     if not video_path:
